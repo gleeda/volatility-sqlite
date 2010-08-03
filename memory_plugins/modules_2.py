@@ -124,4 +124,4 @@ class modules_2(forensics.commands.command):
 
             module_size = "0x%06x" % module_size
            
-            yield(module_image, module_base, module_size, module_name, imgname)
+            yield(module_image.lower(), module_base, module_size, module_name, imgname)
