@@ -97,6 +97,8 @@ class modules_2(forensics.commands.command):
         (addr_space, symtab, types) = load_and_identify_image(op, self.opts)
 
         filename = self.opts.filename
+        temp = filename.replace("\\", "/").lower().split("/")
+        imgname = temp[-1]
         
         all_modules = modules_list(addr_space, types, symtab)
 
@@ -119,5 +121,7 @@ class modules_2(forensics.commands.command):
                 module_base = "0x%010x" % module_base
 
             module_size = module_imagesize(addr_space, types, module)
+
+            module_size = "0x%06x" % module_size
            
-            yield(module_image, module_base, module_size, module_name, filename)
+            yield(module_image, module_base, module_size, module_name, imgname)

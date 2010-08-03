@@ -70,7 +70,7 @@ class dlllist_2(forensics.commands.command):
         for (image_file_name, process_id,command_line,base,size,path, memimage) in data:
 
             outfd.write("%-20s %-6s %-26s %-20s %-16s %-26s\n" % (
-                image_file_name, 
+                image_file_name,
                 process_id,
                 command_line,
                 base,
@@ -83,13 +83,13 @@ class dlllist_2(forensics.commands.command):
          cur = conn.cursor()
 
 	 if not os.path.isfile(outfd):
-             cur.execute("create table dlls (image_file_name text, pid integer, cmdline text, base text, size text, path text, memimage text)")
+             cur.execute("create table dlls (pname text, pid integer, cmdline text, base text, size text, path text, memimage text)")
              conn.commit()
 
          try:
              cur.execute("select * from dlls")
          except sqlite3.OperationalError:
-             cur.execute("create table dlls (image_file_name text, pid integer, cmdline text, base text, size text, path text, memimage text)")
+             cur.execute("create table dlls (pname text, pid integer, cmdline text, base text, size text, path text, memimage text)")
              conn.commit()
 
 	 for (image_file_name,
@@ -102,15 +102,12 @@ class dlllist_2(forensics.commands.command):
              conn = sqlite3.connect(outfd)
              cur = conn.cursor()
              cur.execute("insert into dlls values (?,?,?,?,?,?,?)", 
-                 (image_file_name, process_id, command_line, base, size, path, filename))
-	     conn.commit()
+                 (image_file_name.lower(), process_id, command_line.lower(), base, size, path.lower(), filename))
+             conn.commit()
 
     def parser(self):
        
         forensics.commands.command.parser(self)
-
-        self.op.remove_option('-b')
-        self.op.remove_option('-t')
 
         self.op.add_option('-o', '--offset',
             help='EPROCESS Offset (in hex) in physical address space',
@@ -131,6 +128,8 @@ class dlllist_2(forensics.commands.command):
         (addr_space, symtab, types) = load_and_identify_image(self.op, self.opts)
 
         filename = self.opts.filename
+        temp = filename.replace("\\", "/").lower().split("/")
+        imgname = temp[-1]
 
         if not opts.offset is None:
  
@@ -194,7 +193,7 @@ class dlllist_2(forensics.commands.command):
                 else:
                     size = "0x" % (size)
                 
-                yield (image_file_name, process_id,command_line,base,size,path)            
+                yield (image_file_name, process_id,command_line,base,size,path, imgname)            
             
         else:
     
@@ -267,5 +266,5 @@ class dlllist_2(forensics.commands.command):
                     else:
                         size = "0x%1x" % (size)
                 
-                    yield (image_file_name, process_id,command_line,base,size,path, filename)            
+                    yield (image_file_name, process_id,command_line,base,size,path, imgname)            
  

@@ -119,6 +119,8 @@ class sockets_2(forensics.commands.command):
         (addr_space, symtab, types) = load_and_identify_image(self.op, self.opts)
 
         filename = self.opts.filename
+        temp = filename.replace("\\", "/").lower().split("/")
+        imgname = temp[-1]
 	
         sockets = open_sockets(addr_space, types, symtab)
 
@@ -133,5 +135,5 @@ class sockets_2(forensics.commands.command):
             port  = socket_local_port(addr_space, types, socket)
             time  = socket_create_time(addr_space, types, socket)
         
-            yield(pid,port,proto,format_time(time), filename)
+            yield(pid,port,proto,format_time(time), imgname)
     

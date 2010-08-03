@@ -68,9 +68,6 @@ class connections_2(forensics.commands.command):
  
         forensics.commands.command.parser(self)
 
-        self.op.remove_option('-b')
-        self.op.remove_option('-t')
-
         self.op.add_option('-o', '--offset',
             help='EPROCESS Offset (in hex) in physical address space',
             action='store', type='string', dest='offset')
@@ -116,6 +113,8 @@ class connections_2(forensics.commands.command):
         (addr_space, symtab, types) = load_and_identify_image(self.op, self.opts)
 
         filename = self.opts.filename
+        temp = filename.replace("\\", "/").lower().split("/")
+        imgname = temp[-1]
     
         connections = tcb_connections(addr_space, types, symtab)
 
@@ -133,4 +132,4 @@ class connections_2(forensics.commands.command):
             local = "%s:%d"%(laddr,lport)
             remote = "%s:%d"%(raddr,rport)
 
-            yield(pid, local, remote, filename)
+            yield(pid, local, remote, imgname)

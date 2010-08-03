@@ -109,24 +109,24 @@ class files_2(forensics.commands.command):
          cur = conn.cursor()
 
 	 if not os.path.isfile(outfd):
-             cur.execute("create table files (pid, file, num, memimage)")
+             cur.execute("create table files (pid integer, file text, num integer, memimage text)")
              conn.commit()
 
          try:
              cur.execute("select * from files")
          except sqlite3.OperationalError:
-             cur.execute("create table files (pid, file, num, memimage)")
+             cur.execute("create table files (pid integer, file text, num integer, memimage text)")
              conn.commit()
 
 	 for (process_id, file_name, memimage) in data:
              if file_name != None:
                  conn = sqlite3.connect(outfd)
                  cur = conn.cursor()
-                 temp = find_count(outfd, process_id, file_name)
+                 temp = find_count(outfd, process_id, file_name.lower())
                  if temp == 0:
-                     cur.execute("insert into files values (?,?,?,?)", (process_id, file_name, 1, memimage))
+                     cur.execute("insert into files values (?,?,?,?)", (process_id, file_name.lower(), 1, memimage))
                  else:
-                     cur.execute("update files set num = ? where pid = ? and file = ? and memimage = ?", (temp, process_id, file_name, memimage))
+                     cur.execute("update files set num = ? where pid = ? and file = ? and memimage = ?", (temp, process_id, file_name.lower(), memimage))
                  conn.commit()
 
     def parser(self):
@@ -154,6 +154,8 @@ class files_2(forensics.commands.command):
         (addr_space, symtab, types) = load_and_identify_image(self.op, self.opts)
 
         filename = self.opts.filename
+        temp = filename.replace("\\", "/").lower().split("/")
+        imgname = temp[-1]
         pid = opts.pid
 
         if not opts.offset is None:
@@ -187,5 +189,5 @@ class files_2(forensics.commands.command):
             entries = handle_entries(addr_space, types, table)
             for hentry in entries:
                 fname = print_entry_file2(addr_space, types, hentry)
-                yield(process_id, fname, filename)         
+                yield(process_id, fname, imgname)         
  

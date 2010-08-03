@@ -103,7 +103,7 @@ class pslist_2(forensics.commands.command):
              conn = sqlite3.connect(outfd)
              cur = conn.cursor()
              cur.execute("insert into process values (?,?,?,?,?,?,?)", 
-                 (image_file_name, process_id, inherited_from, active_threads, handle_count, create_time, filename))
+                 (image_file_name.lower(), process_id, inherited_from, active_threads, handle_count, create_time, filename))
 	     conn.commit()
 
     def calculate(self):
@@ -112,6 +112,8 @@ class pslist_2(forensics.commands.command):
         all_tasks = process_list(addr_space,types,symtab)
 
         filename = self.opts.filename
+        temp = filename.replace("\\", "/").lower().split("/")
+        imgname = temp[-1]
 
         for task in all_tasks:
             if not addr_space.is_valid_address(task):
@@ -149,4 +151,4 @@ class pslist_2(forensics.commands.command):
                    active_threads,
                    handle_count,
                    create_time, 
-                   filename)
+                   imgname)
