@@ -80,20 +80,20 @@ class pslist_2(forensics.commands.command):
                 create_time))
             
     def render_sql(self,outfd,data):
-         conn = sqlite3.connect(outfd)
-         cur = conn.cursor()
+        conn = sqlite3.connect(outfd)
+        cur = conn.cursor()
 
-	 if not os.path.isfile(outfd):
-             cur.execute("create table process (pname text, pid integer, ppid integer, thrds text, hndl text, ctime text, memimage text)")
-             conn.commit()
+        if not os.path.isfile(outfd):
+            cur.execute("create table process (pname text, pid integer, ppid integer, thrds text, hndl text, ctime text, memimage text)")
+            conn.commit()
+        else:
+            try:
+                cur.execute("select * from process")
+            except sqlite3.OperationalError:
+                cur.execute("create table process (pname text, pid integer, ppid integer, thrds text, hndl text, ctime text, memimage text)")
+                conn.commit()
 
-         try:
-             cur.execute("select * from process")
-         except sqlite3.OperationalError:
-             cur.execute("create table process (pname text, pid integer, ppid integer, thrds text, hndl text, ctime text, memimage text)")
-             conn.commit()
-
-	 for (image_file_name,
+	    for (image_file_name,
              process_id,
              inherited_from,
              active_threads,
