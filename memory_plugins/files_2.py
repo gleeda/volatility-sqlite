@@ -28,18 +28,6 @@ from vutils import *
 from forensics.win32.tasks import *
 from forensics.win32.handles import *
 
-def find_count(outfd, process_id, file_name):
-    conn = sqlite3.connect(outfd)
-    cur = conn.cursor()
-
-    for c in cur.execute("select num from files where pid = ? and file = ?",(process_id, file_name)):
-        if c[0] >= 0:
-            temp = c[0] + 1
-        else:
-            temp = 0
-        return temp
-    return 0
-
 
 def print_entry_file2(addr_space, types, entry):
 
@@ -113,17 +101,22 @@ class files_2(forensics.commands.command):
          except sqlite3.OperationalError:
              cur.execute("create table files (pid integer, file text, num integer, memimage text)")
              conn.commit()
+         for (process_id, file_name, memimage) in data:
+            if file_name != None:
+                conn = sqlite3.connect(outfd)
+                cur = conn.cursor()
+                cur.execute("select num from files where pid = ? and file = ? and memimage = ?",
+                              (process_id, file_name.lower(), memimage))
+                try:
+                    count = cur.fetchone()[0]
+                    cur.execute("update files set num = ? where pid = ? and file = ? and memimage = ?", 
+                            (count+1, process_id, file_name.lower(), memimage))
+                except:
+                    cur.execute("insert into files values (?,?,?,?)",
+                            (process_id, file_name.lower(), 1, memimage))
+                conn.commit()
 
-	 for (process_id, file_name, memimage) in data:
-             if file_name != None:
-                 conn = sqlite3.connect(outfd)
-                 cur = conn.cursor()
-                 temp = find_count(outfd, process_id, file_name.lower())
-                 if temp == 0:
-                     cur.execute("insert into files values (?,?,?,?)", (process_id, file_name.lower(), 1, memimage))
-                 else:
-                     cur.execute("update files set num = ? where pid = ? and file = ? and memimage = ?", (temp, process_id, file_name.lower(), memimage))
-                 conn.commit()
+        conn.close()
 
     def parser(self):
 
@@ -140,7 +133,7 @@ class files_2(forensics.commands.command):
     
     def calculate(self):
         """
-        Function prints a list of dlls loaded in each process
+        Function prints a list of files opened in each process
         """
 
         htables = []
