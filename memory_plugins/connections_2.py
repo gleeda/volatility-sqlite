@@ -86,10 +86,6 @@ class connections_2(forensics.commands.command):
          conn = sqlite3.connect(outfd)
          cur = conn.cursor()
 
-	 if not os.path.isfile(outfd):
-             cur.execute("create table connections (pid integer, local text, remote text, memimage text)")
-             conn.commit()
-
          try:
              cur.execute("select * from connections")
          except sqlite3.OperationalError:

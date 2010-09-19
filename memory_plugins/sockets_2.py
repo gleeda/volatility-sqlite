@@ -75,25 +75,21 @@ class sockets_2(forensics.commands.command):
             outfd.write("%-6s %-6s %-6s %-26s\n"%(pid, port, proto,time))
             
     def render_sql(self,outfd,data):
-         conn = sqlite3.connect(outfd)
-         cur = conn.cursor()
+        conn = sqlite3.connect(outfd)
+        cur = conn.cursor()
 
-	 if not os.path.isfile(outfd):
-             cur.execute("create table sockets (pid integer, port integer, proto text, ctime text, memimage text)")
-             conn.commit()
-
-         try:
-             cur.execute("select * from sockets")
-         except sqlite3.OperationalError:
-             cur.execute("create table sockets (pid integer, port integer, proto text, ctime text, memimage text)")
-             conn.commit()
-
-	 for (pid, port,
-             proto, ctime, filename) in data:
-             conn = sqlite3.connect(outfd)
-             cur = conn.cursor()
-             cur.execute("insert into sockets values (?,?,?,?,?)", (pid, port, proto, ctime, filename))
-	     conn.commit()
+        try:
+            cur.execute("select * from sockets")
+        except sqlite3.OperationalError:
+            cur.execute("create table sockets (pid integer, port integer, proto text, ctime text, memimage text)")
+            conn.commit()
+        
+        for (pid, port,
+            proto, ctime, filename) in data:
+            conn = sqlite3.connect(outfd)
+            cur = conn.cursor()
+            cur.execute("insert into sockets values (?,?,?,?,?)", (pid, port, proto, ctime, filename))
+            conn.commit()
 
     def parser(self):
 

@@ -66,28 +66,24 @@ class modules_2(forensics.commands.command):
         outfd.write("%-50s %-12s %-8s %s\n" %('File','Base', 'Size', 'Name'))
 
         for (file, base, size, name, memimage) in data:
-            outfd.write("%-50s %s 0x%06x %s\n" %(file, base, size, name))
+            outfd.write("%-50s %s %s %s\n" %(file, base, size, name))
             
     def render_sql(self,outfd,data):
-         conn = sqlite3.connect(outfd)
-         cur = conn.cursor()
+        conn = sqlite3.connect(outfd)
+        cur = conn.cursor()
 
-	 if not os.path.isfile(outfd):
-             cur.execute("create table modules (file text, base text, size text, name text, memimage text)")
-             conn.commit()
+        try:
+            cur.execute("select * from modules")
+        except sqlite3.OperationalError:
+            cur.execute("create table modules (file text, base text, size text, name text, memimage text)")
+            conn.commit()
 
-         try:
-             cur.execute("select * from modules")
-         except sqlite3.OperationalError:
-             cur.execute("create table modules (file text, base text, size text, name text, memimage text)")
-             conn.commit()
-
-	 for (file,base,size,
+        for (file,base,size,
              name, filename) in data:
-             conn = sqlite3.connect(outfd)
-             cur = conn.cursor()
-             cur.execute("insert into modules values (?,?,?,?,?)", (file, base, size, name, filename))
-	     conn.commit()
+            conn = sqlite3.connect(outfd)
+            cur = conn.cursor()
+            cur.execute("insert into modules values (?,?,?,?,?)", (file, base, size, name, filename))
+            conn.commit()
 
     def calculate(self):
         op = get_standard_parser(self.cmdname)

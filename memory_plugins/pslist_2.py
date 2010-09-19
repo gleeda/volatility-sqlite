@@ -83,28 +83,24 @@ class pslist_2(forensics.commands.command):
         conn = sqlite3.connect(outfd)
         cur = conn.cursor()
 
-        if not os.path.isfile(outfd):
+        try:
+            cur.execute("select * from process")
+        except sqlite3.OperationalError:
             cur.execute("create table process (pname text, pid integer, ppid integer, thrds text, hndl text, ctime text, memimage text)")
             conn.commit()
-        else:
-            try:
-                cur.execute("select * from process")
-            except sqlite3.OperationalError:
-                cur.execute("create table process (pname text, pid integer, ppid integer, thrds text, hndl text, ctime text, memimage text)")
-                conn.commit()
 
-	    for (image_file_name,
-             process_id,
-             inherited_from,
-             active_threads,
-             handle_count,
-             create_time, 
-             filename) in data:
-             conn = sqlite3.connect(outfd)
-             cur = conn.cursor()
-             cur.execute("insert into process values (?,?,?,?,?,?,?)", 
-                 (image_file_name.lower(), process_id, inherited_from, active_threads, handle_count, create_time, filename))
-	     conn.commit()
+        for (image_file_name,
+            process_id,
+            inherited_from,
+            active_threads,
+            handle_count,
+            create_time, 
+            filename) in data:
+            conn = sqlite3.connect(outfd)
+            cur = conn.cursor()
+            cur.execute("insert into process values (?,?,?,?,?,?,?)", 
+                (image_file_name.lower(), process_id, inherited_from, active_threads, handle_count, create_time, filename))
+            conn.commit()
 
     def calculate(self):
         (addr_space, symtab, types) = load_and_identify_image(self.op, self.opts)
