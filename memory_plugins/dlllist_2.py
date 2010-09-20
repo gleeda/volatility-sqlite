@@ -79,31 +79,27 @@ class dlllist_2(forensics.commands.command):
 
             
     def render_sql(self,outfd,data):
-         conn = sqlite3.connect(outfd)
-         cur = conn.cursor()
+        conn = sqlite3.connect(outfd)
+        cur = conn.cursor()
 
-	 if not os.path.isfile(outfd):
-             cur.execute("create table dlls (pname text, pid integer, cmdline text, base text, size text, path text, memimage text)")
-             conn.commit()
-
-         try:
-             cur.execute("select * from dlls")
-         except sqlite3.OperationalError:
-             cur.execute("create table dlls (pname text, pid integer, cmdline text, base text, size text, path text, memimage text)")
-             conn.commit()
-
-	 for (image_file_name,
+        try:
+            cur.execute("select * from dlls")
+        except sqlite3.OperationalError:
+            cur.execute("create table dlls (pname text, pid integer, cmdline text, base text, size text, path text, memimage text)")
+            conn.commit()
+        
+        for (image_file_name,
              process_id,
              command_line,
              base,
              size,
              path,
              filename) in data:
-             conn = sqlite3.connect(outfd)
-             cur = conn.cursor()
-             cur.execute("insert into dlls values (?,?,?,?,?,?,?)", 
+            conn = sqlite3.connect(outfd)
+            cur = conn.cursor()
+            cur.execute("insert into dlls values (?,?,?,?,?,?,?)", 
                  (image_file_name.lower(), process_id, command_line.lower(), base, size, path.lower(), filename))
-             conn.commit()
+            conn.commit()
 
     def parser(self):
        

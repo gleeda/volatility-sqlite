@@ -93,15 +93,15 @@ class files_2(forensics.commands.command):
 
     
     def render_sql(self,outfd,data):
-         conn = sqlite3.connect(outfd)
-         cur = conn.cursor()
+        conn = sqlite3.connect(outfd)
+        cur = conn.cursor()
 
-         try:
-             cur.execute("select * from files")
-         except sqlite3.OperationalError:
-             cur.execute("create table files (pid integer, file text, num integer, memimage text)")
-             conn.commit()
-         for (process_id, file_name, memimage) in data:
+        try:
+            cur.execute("select * from files")
+        except sqlite3.OperationalError:
+            cur.execute("create table files (pid integer, file text, num integer, memimage text)")
+            conn.commit()
+        for (process_id, file_name, memimage) in data:
             if file_name != None:
                 conn = sqlite3.connect(outfd)
                 cur = conn.cursor()
@@ -115,7 +115,6 @@ class files_2(forensics.commands.command):
                     cur.execute("insert into files values (?,?,?,?)",
                             (process_id, file_name.lower(), 1, memimage))
                 conn.commit()
-
         conn.close()
 
     def parser(self):
